@@ -1,0 +1,152 @@
+import java.awt.Color;
+import java.awt.Graphics;
+import javax.swing.JPanel;
+import javax.swing.JOptionPane;
+import javax.swing.JLabel;
+import javax.swing.JFrame;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+
+/**
+ * Author: Jun Hao Zhang
+ * 
+ * Description:
+ *  This class asks the user for the number of shape they want and 
+ *  creates 3 shape randomly. It then draws the shapes and also return
+ *  the number of shapes that were created.
+ * 
+ *  Date: January 15, 2016
+ */
+
+public class DrawPanel extends JPanel
+{
+    private LinkedList <MyShape> shapeObjects = new LinkedList<MyShape>();;
+    private int currentShapeType;
+    private MyShape currentShapeObject;
+    private Color currentShapeColor;
+    private Boolean currentShapeFilled;
+    private MyShape lastShapeDrawn;
+    private JLabel statusLabel;
+    private final int LINE = 2;
+    private MyShape tempPrev;
+    
+    public DrawPanel( JLabel label )
+    {
+        
+        statusLabel = label;
+        
+        currentShapeType = LINE;
+        currentShapeColor = Color.BLACK;
+        currentShapeFilled = false;
+        
+        setBackground(Color.WHITE);
+        MouseClickHandler handler = new MouseClickHandler(); 
+        addMouseListener( handler );
+        addMouseMotionListener( handler );
+    }
+    
+    public void paintComponent( Graphics g )
+    {
+        
+        super.paintComponent(g);
+        
+        if (shapeObjects.first() != null){
+            for (int i = 0; i < shapeObjects.size(); i++ )
+            {
+
+                tempPrev = shapeObjects.first();
+                shapeObjects.addBack(tempPrev);
+                if (tempPrev != null){
+                    tempPrev.draw(g);
+                }
+                shapeObjects.removeFront();
+            }
+        }
+        if (currentShapeObject != null){
+            currentShapeObject.draw(g);
+        }
+    }
+    
+    public void setCurrentShapeType(int type){
+        
+        currentShapeType = type;
+    }
+    public void setCurrentShapeColor(Color color){
+        
+        currentShapeColor = color;
+    }
+    public void setCurrentShapeFilled(Boolean fill){
+        
+        currentShapeFilled = fill;
+    }
+    public void clearLastShape(){
+        
+        lastShapeDrawn = shapeObjects.removeFront();
+        repaint();
+        
+    }
+    public void redoLastShape(){
+        
+        shapeObjects.addFront(lastShapeDrawn);
+        repaint();
+        
+    }
+    public void clearDrawing(){
+        
+        shapeObjects.makeEmpty();
+        repaint();
+    }
+    
+    
+    
+    
+    private class MouseClickHandler extends MouseAdapter 
+    {
+        
+        
+        public void mousePressed( MouseEvent event ){
+            
+            int xPos = event.getX(); // get x position of mouse
+            int yPos = event.getY(); // get y position of mouse
+            
+            if (currentShapeType == 0 ){
+                currentShapeObject = new MyOval(xPos,yPos,xPos,yPos,currentShapeFilled,currentShapeColor);
+            }
+            if (currentShapeType == 1){
+                currentShapeObject = new MyRectangle(xPos,yPos,xPos,yPos,currentShapeFilled,currentShapeColor);
+            }
+            if (currentShapeType == 2){
+                currentShapeObject = new MyLine(xPos,yPos,xPos,yPos,currentShapeColor);
+            }
+            
+        }
+        public void mouseReleased( MouseEvent event ){
+            int xPos = event.getX(); // get x position of mouse
+            int yPos = event.getY(); // get y position of mouse
+            currentShapeObject.setx2(xPos);
+            currentShapeObject.sety2(yPos);
+            shapeObjects.addFront(currentShapeObject);
+            currentShapeObject = null;
+            repaint();
+            
+        }
+        // handle event when user moves mouse
+        public void mouseMoved( MouseEvent event )
+        {
+            statusLabel.setText( String.format( "Moved at [%d, %d]", 
+                                               event.getX(), event.getY() ) );
+        } // end method mouseMoved
+        public void mouseDragged( MouseEvent event )
+        {
+            currentShapeObject.setx2(event.getX());
+            currentShapeObject.sety2(event.getY());
+            statusLabel.setText( String.format( "Moved at [%d, %d]", 
+                                               event.getX(), event.getY() ) );
+            repaint();
+        } // end method mouseDragged
+        
+    } 
+}
+
